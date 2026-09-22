@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project RESOLVE – Integrated Governance & Recovery Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a2332;
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #0f2b46 0%, #1a4a7a 100%);
+    color: #ffffff;
+    padding: 60px 40px 50px;
+    text-align: center;
+  }
+  header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  header p.subtitle { font-size: 1.05rem; opacity: 0.85; max-width: 720px; margin: 0 auto 18px; }
+  header .meta { font-size: 0.88rem; opacity: 0.7; margin-top: 14px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
+  section { padding: 50px 0 30px; border-bottom: 1px solid #e1e7ef; }
+  section:last-of-type { border-bottom: none; }
+  h2 {
+    font-size: 1.5rem;
+    color: #0f2b46;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .num {
+    background: #1a4a7a;
+    color: #fff;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  h3 { font-size: 1.1rem; color: #1a4a7a; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; font-size: 0.97rem; }
+  ul { margin: 10px 0 16px 22px; }
+  li { margin-bottom: 6px; font-size: 0.95rem; }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin: 20px 0 24px;
+  }
+  .kpi-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 16px;
+    border-left: 5px solid #1a4a7a;
+    box-shadow: 0 2px 8px rgba(15,43,70,0.06);
+  }
+  .kpi-card.negative { border-left-color: #c0392b; }
+  .kpi-card.warning { border-left-color: #e67e22; }
+  .kpi-card.positive { border-left-color: #27ae60; }
+  .kpi-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.6px; color: #6b7a8f; font-weight: 600; }
+  .kpi-card .value { font-size: 1.6rem; font-weight: 700; color: #0f2b46; margin: 6px 0 2px; }
+  .kpi-card .note { font-size: 0.78rem; color: #6b7a8f; }
+  .kpi-card.negative .value { color: #c0392b; }
+  .kpi-card.warning .value { color: #e67e22; }
+  .kpi-card.positive .value { color: #27ae60; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,43,70,0.06);
+    margin: 18px 0 24px;
+    font-size: 0.9rem;
+  }
+  th {
+    background: #0f2b46;
+    color: #fff;
+    text-align: left;
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 0.83rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #f9fbfd; }
+  .tag {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .tag-high { background: #fdecea; color: #c0392b; }
+  .tag-med { background: #fef5e7; color: #d35400; }
+  .tag-low { background: #eafaf1; color: #1e8449; }
+  .tag-blue { background: #e8f0fb; color: #1a4a7a; }
+
+  /* Systems Map */
+  .systems-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 22px 0;
+    justify-content: center;
+  }
+  .sys-node {
+    background: #fff;
+    border: 2px solid #1a4a7a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    min-width: 110px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f2b46;
+  }
+  .sys-node small { display: block; font-weight: 400; font-size: 0.72rem; color: #6b7a8f; margin-top: 4px; }
+  .sys-arrow { font-size: 1.4rem; color: #1a4a7a; }
+
+  /* Governance */
+  .gov-tier {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .gov-box {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(15,43,70,0.06);
+    border-top: 4px solid #1a4a7a;
+  }
+  .gov-box h4 { font-size: 0.95rem; color: #0f2b46; margin-bottom: 6px; }
+  .gov-box p { font-size: 0.83rem; color: #4a5b70; margin: 0; }
+  .gov-box .authority { font-size: 0.78rem; font-weight: 600; color: #1a4a7a; margin-top: 8px; }
+
+  footer {
+    background: #0f2b46;
+    color: #cfd8e3;
+    text-align: center;
+    padding: 28px 20px;
+    font-size: 0.82rem;
+  }
+  footer a { color: #8ab6e0; text-decoration: none; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.5rem; }
+    .kpi-card .value { font-size: 1.3rem; }
+    .sys-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Project RESOLVE</h1>
+  <p class="subtitle">Integrated Governance &amp; Recovery Dashboard — A decision-support artefact evidencing the RALF competency of <strong>Critical Thinking</strong> in advanced project operations, procurement and governance.</p>
+  <p class="meta">Mihir Kalpesh Patel &nbsp;|&nbsp; PRM25706 &nbsp;|&nbsp; Student ID: 98979025 &nbsp;|&nbsp; Level 7 – Semester 1</p>
+</header>
+
+<div class="container">
+
+  <!-- SECTION 1: EVA DASHBOARD -->
+  <section>
+    <h2><span class="num">1</span> Earned Value Performance Panel — Month 12</h2>
+    <p>Month 12 reports underperformance against the £100m / 36-month baseline. The figures below are taken directly from Assessment 2 and form the quantitative foundation of the recovery narrative.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="label">Planned Value (PV)</div><div class="value">£32m</div><div class="note">Baseline at Month 12</div></div>
+      <div class="kpi-card"><div class="label">Earned Value (EV)</div><div class="value">£28m</div><div class="note">Work actually completed</div></div>
+      <div class="kpi-card negative"><div class="label">Actual Cost (AC)</div><div class="value">£34m</div><div class="note">Overspend of £2m vs PV</div></div>
+      <div class="kpi-card negative"><div class="label">Cost Performance Index</div><div class="value">0.824</div><div class="note">£0.82 earned per £1 spent</div></div>
+      <div class="kpi-card warning"><div class="label">Schedule Performance Index</div><div class="value">0.875</div><div class="note">87.5% of planned value realised</div></div>
+      <div class="kpi-card negative"><div class="label">Cost Variance</div><div class="value">–£6.00m</div><div class="note">EV – AC</div></div>
+      <div class="kpi-card negative"><div class="label">Schedule Variance</div><div class="value">–£4.00m</div><div class="note">EV – PV</div></div>
+      <div class="kpi-card negative"><div class="label">Estimate at Completion</div><div class="value">£121.43m</div><div class="note">BAC ÷ CPI</div></div>
+      <div class="kpi-card negative"><div class="label">Variance at Completion</div><div class="value">–£21.43m</div><div class="note">BAC – EAC</div></div>
+      <div class="kpi-card warning"><div class="label">To-Complete PI</div><div class="value">1.091</div><div class="note">32.5% efficiency gain needed</div></div>
+    </div>
+
+    <h3>Earned Value Summary Table</h3>
+    <table>
+      <thead>
+        <tr><th>Measure</th><th>Calculation</th><th>Result</th><th>Interpretation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CPI</td><td>EV ÷ AC = 28 ÷ 34</td><td>0.824</td><td>Cost inefficiency — overspending</td></tr>
+        <tr><td>SPI</td><td>EV ÷ PV = 28 ÷ 32</td><td>0.875</td><td>Schedule slippage — underdelivery</td></tr>
+        <tr><td>CV</td><td>EV – AC = 28 – 34</td><td>–£6.00m</td><td>Adverse cost variance</td></tr>
+        <tr><td>SV</td><td>EV – PV = 28 – 32</td><td>–£4.00m</td><td>Adverse schedule variance</td></tr>
+        <tr><td>EAC</td><td>BAC ÷ CPI = 100 ÷ (28/34)</td><td>£121.43m</td><td>£21.43m overrun forecast</td></tr>
+        <tr><td>VAC</td><td>BAC – EAC</td><td>–£21.43m</td><td>Budget breach projected</td></tr>
+        <tr><td>TCPI</td><td>(100–28) ÷ (100–34)</td><td>1.091</td><td>Requires 32.5% efficiency gain</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Critical insight:</strong> The CPI-based EAC assumes current efficiency continues. The TCPI of 1.091 shows that recovering to the original £100m budget would require a 32.5% improvement in cost efficiency — a demanding, possibly unachievable target without fundamental change to delivery approach.</p>
+  </section>
+
+  <!-- SECTION 2: SYSTEMS MAP -->
+  <section>
+    <h2><span class="num">2</span> Root-Cause &amp; Systems Map</h2>
+    <p>Early procurement and mobilisation choices create downstream delivery consequences. The system flow below traces how Month 6–14 decisions cascade into Month 14 disruption.</p>
+
+    <div class="systems-flow">
+      <div class="sys-node">SOURCE<small>Procurement &amp; packaging</small></div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-node">CONTRACT<small>Risk &amp; incentives</small></div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-node">SUPPLIER<small>Behaviour &amp; interfaces</small></div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-node">DELIVER<small>Cost · time · safety</small></div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-node" style="background:#0f2b46;color:#fff;border-color:#0f2b46;">GOVERN<small style="color:#8ab6e0;">Escalate &amp; adapt</small></div>
+    </div>
+
+    <h3>Key Interdependencies</h3>
+    <table>
+      <thead>
+        <tr><th>Driver</th><th>Month 12 Metric</th><th>Target</th><th>Gap</th><th>Downstream Effect</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Procurement cycle time</td><td>13 weeks</td><td>10 weeks</td><td>+30%</td><td>Delays mobilisation and construction</td></tr>
+        <tr><td>Supplier on-time delivery</td><td>82%</td><td>95%</td><td>–13 pp</td><td>Component shortages at Month 14</td></tr>
+        <tr><td>Contractors per supervisor</td><td>12.3</td><td>8.6</td><td>+43%</td><td>Coordination overload and quality risk</td></tr>
+        <tr><td>Procurement specialists</td><td>12</td><td>10</td><td>+2</td><td>Staffing above plan but cycle time not achieved</td></tr>
+        <tr><td>Engineers / Supervisors</td><td>15 / 11</td><td>18 / 14</td><td>–3 / –3</td><td>Engineering and supervisory gaps</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Critical insight:</strong> Adding more contractors without addressing underlying constraints may worsen congestion and rework. The system requires constraint removal, not just resource volume.</p>
+  </section>
+
+  <!-- SECTION 3: RISK MATRIX -->
+  <section>
+    <h2><span class="num">3</span> Risk &amp; Contingency Matrix</h2>
+    <p>Contingency is designed before commitment — not improvised after disruption. The matrix below maps strategic risks to pre-agreed contingencies drawn from Assessment 1.</p>
+
+    <table>
+      <thead>
+        <tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Designed Contingency</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Supplier failure</td><td><span class="tag tag-med">Medium</span></td><td><span class="tag tag-high">High</span></td><td>Financial-health monitoring · dual source · step-in rights</td></tr>
+        <tr><td>Long-lead delay</td><td><span class="tag tag-high">High</span></td><td><span class="tag tag-high">High</span></td><td>Early order · schedule buffer · approved alternatives</td></tr>
+        <tr><td>Cost escalation</td><td><span class="tag tag-high">High</span></td><td><span class="tag tag-med">Medium</span></td><td>Target-cost control · indexation rules · contingency reserve</td></tr>
+        <tr><td>Regulatory delay</td><td><span class="tag tag-low">Low</span></td><td><span class="tag tag-high">High</span></td><td>Early regulator engagement · evidence-ready stage gates</td></tr>
+        <tr><td>Interface failure</td><td><span class="tag tag-med">Medium</span></td><td><span class="tag tag-med">Medium</span></td><td>Interface manager · RACI · integrated schedule</td></tr>
+        <tr><td>Community opposition</td><td><span class="tag tag-low">Low</span></td><td><span class="tag tag-med">Medium</span></td><td>Early consultation · grievance and response pathway</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Month 14 Supplier Shock — Live Response</h3>
+    <ul>
+      <li><strong>Trigger:</strong> Component delay of at least 8 weeks; alternative sourcing premium up to 6%; compliance assessment required on supplier origin change.</li>
+      <li><strong>Escalation:</strong> Delay exceeds the 6-week trigger; immediate escalation to Steering Committee.</li>
+      <li><strong>Action:</strong> Update integrated schedule to determine float, affected installation/testing, and regulatory requirements.</li>
+      <li><strong>Financial test:</strong> If impacted sourcing spend C = £10m, maximum premium = £0.60m. Only if full £28m procurement budget were affected would premium reach £1.68m.</li>
+      <li><strong>Decision logic:</strong> Reforecast at Month 14 using actuals, supplier bids, prolongation and mitigation costs — avoiding double-counting of already-projected expenses.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 4: GOVERNANCE -->
+  <section>
+    <h2><span class="num">4</span> Governance Decision-Rights Framework</h2>
+    <p>Clear authority with independent assurance. The framework defines who decides, at what threshold, and with what oversight.</p>
+
+    <div class="gov-tier">
+      <div class="gov-box">
+        <h4>Executive Sponsor</h4>
+        <p>Strategic accountability and final budget authority.</p>
+        <div class="authority">Approves &gt; £5m</div>
+      </div>
+      <div class="gov-box">
+        <h4>Steering Committee</h4>
+        <p>Major cost, scope and risk decisions.</p>
+        <div class="authority">Approves £1m – £5m</div>
+      </div>
+      <div class="gov-box">
+        <h4>Project Manager</h4>
+        <p>Integrated delivery control and day-to-day decisions.</p>
+        <div class="authority">Approves up to £1m</div>
+      </div>
+      <div class="gov-box">
+        <h4>Commercial Team</h4>
+        <p>Procurement, contracts and supplier negotiations.</p>
+        <div class="authority">Recommends, does not approve</div>
+      </div>
+      <div class="gov-box">
+        <h4>Compliance Board</h4>
+        <p>Safety, ESG and regulatory assurance.</p>
+        <div class="authority">Veto on compliance matters</div>
+      </div>
+      <div class="gov-box">
+        <h4>Independent Assurance</h4>
+        <p>Challenges decisions without becoming a parallel hierarchy.</p>
+        <div class="authority">Stage-gate review</div>
+      </div>
+    </div>
+
+    <h3>Escalation Triggers</h3>
+    <table>
+      <thead>
+        <tr><th>Trigger</th><th>Threshold</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Cost variance / Planned value</td><td>Beyond ±8%</td><td>Formal exception report to Steering Committee</td></tr>
+        <tr><td>Schedule variance</td><td>Beyond 4 weeks on critical path</td><td>Recovery plan within 10 working days</td></tr>
+        <tr><td>Risk contingency drawdown</td><td>Above £500k</td><td>Steering Committee approval required</td></tr>
+        <tr><td>Compliance breach</td><td>Any material breach</td><td>Compliance Board notified within 24 hours</td></tr>
+        <tr><td>Supplier failure</td><td>Step-in rights activated</td><td>Commercial lead + Steering Committee decision</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Critical insight:</strong> Monthly reports and quarterly board reviews can react too slowly to an 8-week disruption. Weekly exception reporting and delegated authority thresholds enable timely action while preserving accountability.</p>
+  </section>
+
+  <!-- SECTION 5: DECISION LOGIC -->
+  <section>
+    <h2><span class="num">5</span> Decision Logic &amp; Judgement</h2>
+    <p>This artefact prioritises decision logic over data volume. The core judgement calls are summarised below.</p>
+
+    <table>
+      <thead>
+        <tr><th>Decision Point</th><th>Option Considered</th><th>Judgement</th><th>Rationale</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Recovery approach</td><td>Accelerate with more labour</td><td><span class="tag tag-high">Rejected</span></td><td>Would worsen congestion if constraints not removed</td></tr>
+        <tr><td>Recovery approach</td><td>Resequence + stabilise supplier + authorised alternative sourcing</td><td><span class="tag tag-low">Selected</span></td><td>Addresses root causes, not symptoms</td></tr>
+        <tr><td>Budget forecast</td><td>Single-point EAC of £121.43m</td><td><span class="tag tag-med">Stress-tested</span></td><td>Scenario ranges preferred over false precision</td></tr>
+        <tr><td>Contingency use</td><td>Draw down £7m reserve immediately</td><td><span class="tag tag-high">Deferred</span></td><td>Must consider commitments and competing risks first</td></tr>
+        <tr><td>Governance cadence</td><td>Monthly reporting only</td><td><span class="tag tag-high">Insufficient</span></td><td>8-week shock needs weekly exception reporting</td></tr>
+        <tr><td>Supplier strategy</td><td>Single-source replacement</td><td><span class="tag tag-med">Dual-source</span></td><td>Phase 1 dual-sourcing and step-in rights validated</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  <p><strong>Project RESOLVE — Integrated Governance &amp; Recovery Dashboard</strong></p>
+  <p>Mihir Kalpesh Patel · PRM25706 · Assessment 3 · RALF Competency: Critical Thinking</p>
+  <p style="margin-top:10px;opacity:0.7;">Sources: Assessment 1 (Phase 1 – Strategic Design) &amp; Assessment 2 (Phase 2 – Operational Delivery)</p>
+</footer>
+
+</body>
+</html>
